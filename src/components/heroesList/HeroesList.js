@@ -2,9 +2,10 @@ import {useHttp} from '../../hooks/http.hook';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { heroesFetching, heroesFetched, heroesFetchingError } from '../../actions';
+import { heroesFetching, heroesFetched, heroesFetchingError, heroDeleted } from '../../actions';
 import HeroesListItem from "../heroesListItem/HeroesListItem";
 import Spinner from '../spinner/Spinner';
+import { useCallback } from 'react';
 
 // Задача для этого компонента:
 // При клике на "крестик" идет удаление персонажа из общего состояния
@@ -25,6 +26,14 @@ const HeroesList = () => {
         // eslint-disable-next-line
     }, []);
 
+    const onDelete = useCallback(id => {
+        request(`http://localhost:3001/heroes/${id}`, 'DELETE')
+            .then(dispatch(heroDeleted(id)))
+            .catch(() => dispatch(heroesFetchingError()));
+        
+        // eslint-disable-next-line
+    }, [request])
+
     if (heroesLoadingStatus === "loading") {
         return <Spinner/>;
     } else if (heroesLoadingStatus === "error") {
@@ -37,7 +46,7 @@ const HeroesList = () => {
         }
 
         return arr.map(({id, ...props}) => {
-            return <HeroesListItem key={id} {...props}/>
+            return <HeroesListItem onDelete={() => onDelete(id)} key={id} {...props}/>
         })
     }
 
